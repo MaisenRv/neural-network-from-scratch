@@ -9,37 +9,32 @@ class Layer
 public:
     Matrix<T> weights;
     Matrix<T> bias;
-    // activation functions
-    static T sigmoid(T x) { return 1 / (1 + exp(-x)); }
-    static T max(T x)
-    {
-        if (x > 0)
-        {
-            return x;
-        }
-        return 0;
-    }
+    Matrix<T> activationValues;
 
-    Layer(const int numberInputs,const int numberNeurons) : weights(numberNeurons, numberInputs), bias(numberNeurons, 1)
+    
+    Layer(const int numberInputs,const int numberNeurons) 
+        : weights(numberNeurons, numberInputs), bias(numberNeurons, 1), activationValues(numberNeurons,1)
     {
         this->weights.randomize();
         this->bias.randomize();
     }
 
-    Matrix<T> calculateLayer(const Matrix<T> &inputs)
+    Matrix<T> calculateLayer(const Matrix<T> &inputs,T (*f)(T))
     {
-        Matrix<T> weightedSum = ((this->weights * inputs.t()) + this->bias).t();
-        weightedSum.applyFuntion(Layer<T>::sigmoid);
-        weightedSum.print();
-        return weightedSum;
+        Matrix<T> weightedSum = ((this->weights * inputs) + this->bias);
+        weightedSum.applyFuntion(f);
+        this->activationValues = weightedSum;
+        return this->activationValues;
     }
 
     void show()
     {
-        std::cout << "weights" << std::endl;
+        std::cout << "Weights" << std::endl;
         this->weights.print();
-        std::cout << "bias" << std::endl;
+        std::cout << "Bias" << std::endl;
         this->bias.print();
+        std::cout << "Activation values" << std::endl;
+        this->activationValues.print();
         std::cout << std::endl;
     }
 };

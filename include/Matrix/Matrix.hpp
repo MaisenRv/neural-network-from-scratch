@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <stdexcept>
 #include <random>
 
@@ -65,6 +66,31 @@ public:
         }
     }
 
+    Matrix<T> operator-(const T &scalar) const
+    {
+        Matrix<T> result(this->rows, this->cols);
+        for (size_t i = 0; i < this->rows; i++)
+        {
+            for (size_t j = 0; j < this->cols; j++)
+            {
+                result.m[i][j] = this->m[i][j] - scalar;
+            }
+        }
+        return result;
+    }
+
+    void operator-=(const T &scalar)
+    {
+        for (size_t i = 0; i < this->rows; i++)
+        {
+            for (size_t j = 0; j < this->cols; j++)
+            {
+                this->m[i][j] -= scalar;
+            }
+        }
+    }
+
+
     Matrix<T> operator+(const Matrix<T> &otherMatrix) const
     {
         if (this->rows != otherMatrix.rows || this->cols != otherMatrix.cols)
@@ -93,6 +119,38 @@ public:
             for (size_t j = 0; j < this->cols; j++)
             {
                 this->m[i][j] += otherMatrix.m[i][j];
+            }
+        }
+    }
+
+    Matrix<T> operator-(const Matrix<T> &otherMatrix) const
+    {
+        if (this->rows != otherMatrix.rows || this->cols != otherMatrix.cols)
+        {
+            throw std::runtime_error("Matrix dimensions must match for addition.");
+        }
+        Matrix<T> result(this->rows, this->cols);
+        for (size_t i = 0; i < this->rows; i++)
+        {
+            for (size_t j = 0; j < this->cols; j++)
+            {
+                result.m[i][j] = this->m[i][j] - otherMatrix.m[i][j];
+            }
+        }
+        return result;
+    }
+
+    void operator-=(const Matrix<T> &otherMatrix) 
+    {
+        if (this->rows != otherMatrix.rows || this->cols != otherMatrix.cols)
+        {
+            throw std::runtime_error("Matrix dimensions must match for addition.");
+        }
+        for (size_t i = 0; i < this->rows; i++)
+        {
+            for (size_t j = 0; j < this->cols; j++)
+            {
+                this->m[i][j] -= otherMatrix.m[i][j];
             }
         }
     }
@@ -187,8 +245,16 @@ public:
         for (size_t i = 0; i < this->rows; i++)
         {
             for (size_t j = 0; j < this->cols; j++)
-            {
-                std::cout << " | " + std::to_string(this->m[i][j]);
+            {   
+                if(j == 0){
+                    if(this->m[i][j] < 0)  std::cout << "   N"<< std::setw(3) << std::left << i+1 << " |" + std::to_string(this->m[i][j]) + "|";
+                    else                   std::cout << "   N"<< std::setw(3) << std::left << i+1 <<  " | " + std::to_string(this->m[i][j]) + "|";
+                    continue;
+                }  
+                if(this->m[i][j] < 0) std::cout << "" + std::to_string(this->m[i][j]) + "|";
+                else                  std::cout << " " + std::to_string(this->m[i][j]) + "|";
+
+                
             }
             std::cout << std::endl;
         }
@@ -203,5 +269,28 @@ public:
                 this->m[i][j] = f(this->m[i][j]);
             }
         }
+    }
+
+    void pow(const T n){
+        for (size_t i = 0; i < this->rows; i++)
+        {
+            for (size_t j = 0; j < this->cols; j++)
+            {
+                this->m[i][j] = std::pow(this->m[i][j],n);
+            }
+        }
+    }
+
+    static T mean(const Matrix<T> &m) {
+        if (m.cols > 1)
+        {
+            throw std::runtime_error("Matrix dimensions mismatch: expected 1 column.");
+        }
+        T result;
+        for (size_t i = 0; i < m.rows; i++)
+        {
+            result += m[i][0];   
+        }
+        return result / m.rows;
     }
 };
