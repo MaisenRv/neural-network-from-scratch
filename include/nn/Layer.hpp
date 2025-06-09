@@ -9,11 +9,14 @@ class Layer
 public:
     Matrix<T> weights;
     Matrix<T> bias;
+    Matrix<T> weightedSum;
     Matrix<T> activationValues;
+
+    Matrix<T> delta;
 
     
     Layer(const int numberInputs,const int numberNeurons) 
-        : weights(numberNeurons, numberInputs), bias(numberNeurons, 1), activationValues(numberNeurons,1)
+        : weights(numberNeurons, numberInputs), bias(numberNeurons, 1), activationValues(numberNeurons,1),delta(numberNeurons, 1)
     {
         this->weights.randomize();
         this->bias.randomize();
@@ -21,9 +24,10 @@ public:
 
     Matrix<T> calculateLayer(const Matrix<T> &inputs,T (*f)(T))
     {
-        Matrix<T> weightedSum = ((this->weights * inputs) + this->bias);
-        weightedSum.applyFuntion(f);
-        this->activationValues = weightedSum;
+        this->weightedSum = ((this->weights * inputs) + this->bias);
+        Matrix<T> activation = this->weightedSum;
+        activation.applyFuntion(f);
+        this->activationValues = activation;
         return this->activationValues;
     }
 
@@ -35,6 +39,8 @@ public:
         this->bias.print();
         std::cout << "Activation values" << std::endl;
         this->activationValues.print();
+        std::cout << "Deltas" << std::endl;
+        this->delta.print();
         std::cout << std::endl;
     }
 };

@@ -127,7 +127,7 @@ public:
     {
         if (this->rows != otherMatrix.rows || this->cols != otherMatrix.cols)
         {
-            throw std::runtime_error("Matrix dimensions must match for addition.");
+            throw std::runtime_error("Matrix dimensions must match for subtraction.");
         }
         Matrix<T> result(this->rows, this->cols);
         for (size_t i = 0; i < this->rows; i++)
@@ -144,7 +144,7 @@ public:
     {
         if (this->rows != otherMatrix.rows || this->cols != otherMatrix.cols)
         {
-            throw std::runtime_error("Matrix dimensions must match for addition.");
+            throw std::runtime_error("Matrix dimensions must match for subtraction.");
         }
         for (size_t i = 0; i < this->rows; i++)
         {
@@ -293,4 +293,36 @@ public:
         }
         return result / m.rows;
     }
+
+    static T sum(const Matrix<T> &m) {
+        if (m.cols > 1)
+        {
+            throw std::runtime_error("Matrix dimensions mismatch: expected 1 column.");
+        }
+        T result;
+        for (size_t i = 0; i < m.rows; i++)
+        {
+            result += m[i][0];   
+        }
+        return result;
+    }
+
+    void hadamardProduct(const Matrix<T> & otherMatrix){
+        for (size_t i = 0; i < this->rows; i++)
+        {
+            for (size_t j = 0; j < this->cols; j++)
+            {
+                this->m[i][j] *= otherMatrix.m[i][j];
+            }
+        }
+    }
+
+    Matrix<T> getRow(size_t i) const {
+        if (i >= this->rows) throw std::out_of_range("Row index out of range");
+        
+        Matrix<T> rowMatrix(1, this->cols);
+        rowMatrix.m[0] = this->m[i];  
+        return rowMatrix;
+    }
+
 };
