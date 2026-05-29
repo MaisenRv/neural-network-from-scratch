@@ -230,7 +230,8 @@ public:
     {
         std::random_device rd;
         std::mt19937 generator(rd());
-        std::uniform_real_distribution<T> distribution(-1.0, 1.0);
+        // std::uniform_real_distribution<T> distribution(-1.0, 1.0);
+        std::uniform_real_distribution<T> distribution(-0.01, 0.01);
         for (size_t i = 0; i < this->rows; i++)
         {
             for (size_t j = 0; j < this->cols; j++)
@@ -286,7 +287,7 @@ public:
         {
             throw std::runtime_error("Matrix dimensions mismatch: expected 1 column.");
         }
-        T result;
+        T result = 0;
         for (size_t i = 0; i < m.rows; i++)
         {
             result += m[i][0];   
@@ -299,7 +300,7 @@ public:
         {
             throw std::runtime_error("Matrix dimensions mismatch: expected 1 column.");
         }
-        T result;
+        T result = 0;
         for (size_t i = 0; i < m.rows; i++)
         {
             result += m[i][0];   
@@ -308,6 +309,8 @@ public:
     }
 
     void hadamardProduct(const Matrix<T> & otherMatrix){
+        if(this->rows != otherMatrix.rows || this->cols != otherMatrix.cols)
+            throw std::runtime_error("Hadamard product size mismatch");
         for (size_t i = 0; i < this->rows; i++)
         {
             for (size_t j = 0; j < this->cols; j++)
@@ -323,6 +326,54 @@ public:
         Matrix<T> rowMatrix(1, this->cols);
         rowMatrix.m[0] = this->m[i];  
         return rowMatrix;
+    }
+
+    std::vector<T> getRowAsVector(size_t i) const {
+        if (i >= this->rows) throw std::out_of_range("Row index out of range");
+        std::vector<T> rowVector = this->m[i] ; 
+        return rowVector;
+    }
+
+    void eachColSum(size_t colNum, const Matrix<T> & otherMatrix){
+        for (size_t i = 0; i < this->rows; i++)
+        {  
+            this->m[i][colNum] += otherMatrix[i][0]; 
+        }
+    }
+
+
+    static int argmax(const Matrix<float>& m)
+    {
+        // Esperamos vector columna: (N x 1)
+        int bestIndex = 0;
+        float bestValue = m.m[0][0];
+
+        for (int i = 1; i < m.rows; i++)
+        {
+            if (m.m[i][0] > bestValue)
+            {
+                bestValue = m.m[i][0];
+                bestIndex = i;
+            }
+        }
+
+        return bestIndex;
+    }
+
+    static int argmaxCol(const Matrix<T> &m, int col)
+    {
+        int bestIndex = 0;
+        T bestValue = m[0][col];
+
+        for (int i = 1; i < m.rows; i++)
+        {
+            if (m[i][col] > bestValue)
+            {
+                bestValue = m[i][col];
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
     }
 
 };

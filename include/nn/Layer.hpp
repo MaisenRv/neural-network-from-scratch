@@ -1,7 +1,7 @@
 #pragma once
 #include <cmath>
 #include "../Matrix/Matrix.hpp"
-// #include "Neuron.hpp"
+#include "../Matrix/MatrixSolverWithThreads.hpp"
 
 template <typename T = float>
 class Layer
@@ -15,16 +15,16 @@ public:
     Matrix<T> delta;
 
     
-    Layer(const int numberInputs,const int numberNeurons) 
-        : weights(numberNeurons, numberInputs), bias(numberNeurons, 1), activationValues(numberNeurons,1),delta(numberNeurons, 1)
+    Layer(const int numberInputs,const int numberNeurons, int batcheSize) 
+        : weights(numberNeurons, numberInputs), bias(numberNeurons, 1), activationValues(numberNeurons,batcheSize),delta(numberNeurons, batcheSize)
     {
         this->weights.randomize();
         this->bias.randomize();
     }
 
-    Matrix<T> calculateLayer(const Matrix<T> &inputs,T (*f)(T))
+    Matrix<T> calculateLayer(const Matrix<T> &inputs,T (*f)(T), MatrixSolverWithThreads<T> &solver)
     {
-        this->weightedSum = ((this->weights * inputs) + this->bias);
+        this->weightedSum = solver.sumWithVector(solver.mul(this->weights , inputs), this->bias);
         Matrix<T> activation = this->weightedSum;
         activation.applyFuntion(f);
         this->activationValues = activation;
