@@ -1,5 +1,5 @@
-#include "include/nn/NeuralNetwork.hpp"
-#include "include/Matrix/Matrix.hpp"
+#include "nn/NeuralNetwork.hpp"
+#include "Matrix/Matrix.hpp"
 #include <vector>
 #include <iostream>
 #include <cmath>

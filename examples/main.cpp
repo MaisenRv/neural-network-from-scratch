@@ -1,8 +1,9 @@
-#include "include/nn/NeuralNetwork.hpp"
-#include "include/Matrix/Matrix.hpp"
+#include "nn/NeuralNetwork.hpp"
+#include "Matrix/Matrix.hpp"
 #include <vector>
 #include <iostream>
-#include "include/utils/readDataSet.hpp"
+#include "utils/readDataSet.hpp"
+// #include "BitMth/math/Activations.hpp"
 int main()
 {
   	ReadDataSet data("datasets/train-images-idx3-ubyte",true);
