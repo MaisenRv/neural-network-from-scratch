@@ -13,6 +13,7 @@ namespace NN {
         Bitmth::Matrix<T> weightedSum;        
         Bitmth::Matrix<T> activationValues;
         Bitmth::Matrix<T> delta;
+        Bitmth::Matrix<T> inputCache;
 
         Bitmth::Math::ActivationFunct activationFuntType;
         ActivationPtr activationFunt;
