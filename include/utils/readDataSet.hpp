@@ -2,7 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "../Matrix/Matrix.hpp"
+// #include "../Matrix/Matrix.hpp"
+#include <BitMth/core/Matrix.hpp>
 
 class ReadDataSet
 {
@@ -66,9 +67,9 @@ public:
     return true;
   }
 
-  Matrix<float> getNextBatchImages(int bacthSize)
+  BitMth::Matrix<float> getNextBatchImages(int bacthSize)
   {
-    Matrix<float> X(784, bacthSize);
+    BitMth::Matrix<float> X(784, bacthSize);
 
     for (size_t i = 0; i < bacthSize; i++)
     {
@@ -81,15 +82,15 @@ public:
       }
       for (size_t j = 0; j < 784; j++)
       {
-        X[j][i] = image[j] / 255.0f;
+        X(j,i) = image[j] / 255.0f;
       }
     }
     return X;
   }
 
-  Matrix<float> getNextBatchLabes(int bacthSize)
+  BitMth::Matrix<float> getNextBatchLabes(int bacthSize)
   {
-    Matrix<float> Y(10, bacthSize);
+    BitMth::Matrix<float> Y(10, bacthSize);
     for (size_t i = 0; i < bacthSize; i++)
     {
       unsigned char label;
@@ -102,11 +103,11 @@ public:
       {
         if (label == j)
         {
-          Y[j][i] = 1.0f;
+          Y(j,i) = 1.0f;
         }
         else
         {
-          Y[j][i] = 0;
+          Y(j,i) = 0;
         }
       }
     }
