@@ -24,5 +24,8 @@ namespace NN {
         
         virtual Bitmth::Matrix<T> forward(const Bitmth::Matrix<T>& input) = 0;
         virtual Bitmth::Matrix<T> backward(const Bitmth::Matrix<T>& errorGradient) = 0;
+
+        virtual size_t getNumberNeurons() const = 0;
+        virtual size_t getNumberInputs() const = 0;
     };    
 }

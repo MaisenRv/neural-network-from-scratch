@@ -50,6 +50,7 @@ namespace NN {
             this->inputCache = input;
             this->weightedSum = (this->weights * input) + this->bias;
             this->activationValues = this->activationFunt(this->weightedSum);
+            return this->activationValues;
         }
 
         Bitmth::Matrix<T> backward(const Bitmth::Matrix<T>& errorGradient) override{
@@ -67,6 +68,7 @@ namespace NN {
             return this->weights.t() * this->delta;
         }
 
-        
+        size_t getNumberNeurons() const override { return this->weights.rows; }
+        size_t getNumberInputs()  const override { return this->weights.cols; }
     };    
 } 
