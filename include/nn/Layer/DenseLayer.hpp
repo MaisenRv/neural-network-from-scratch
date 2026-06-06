@@ -39,7 +39,7 @@ namespace NN {
         }
 
     public:
-        DenseLayer(size_t inputs, size_t neurons, BitMth::Math::ActivationFunct  actFunctType): weights(neurons,inputs), bias(neurons,1){
+        DenseLayer(size_t inputs, size_t neurons, BitMth::Math::ActivationFunct  actFunctType): weights(inputs,neurons), bias(1, neurons){
             this->activationFuntType = actFunctType;
             this->selectFunctionType(inputs, neurons);
         };
@@ -48,7 +48,8 @@ namespace NN {
 
         BitMth::Matrix<T> forward(const BitMth::Matrix<T>& input) override {
             this->inputCache = input;
-            this->weightedSum = (this->weights * input) + this->bias;
+            this->weightedSum = (input * this->weights).addRowVector(this->bias);
+
             this->activationValues = this->activationFunt(this->weightedSum);
             return this->activationValues;
         }
@@ -63,9 +64,9 @@ namespace NN {
                 );
                 this->delta.hadamard(errorGradient);
             }
-            this->dWeights = this->delta * this->inputCache.t();
-            this->dBias = this->delta.reduceSumCols();
-            return this->weights.t() * this->delta;
+            this->dWeights = this->inputCache.t() * this->delta;
+            this->dBias = this->delta.reduceSumRows();
+            return this->delta * this->weights.t();
         }
 
         void updateParameters(T learningRate) override {
@@ -73,7 +74,7 @@ namespace NN {
             this->bias    -= (learningRate * this->dBias);
         }
 
-        size_t getNumberNeurons() const override { return this->weights.rows; }
-        size_t getNumberInputs()  const override { return this->weights.cols; }
+        size_t getNumberNeurons() const override { return this->weights.cols; }
+        size_t getNumberInputs()  const override { return this->weights.rows; }
     };    
 } 
