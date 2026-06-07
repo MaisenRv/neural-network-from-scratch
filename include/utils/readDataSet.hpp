@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string>
 // #include "../Matrix/Matrix.hpp"
-#include <BitMth/core/Matrix.hpp>
+#include <BitMth/linalg/Matrix.hpp>
 
 class ReadDataSet
 {
@@ -67,9 +67,9 @@ public:
     return true;
   }
 
-  BitMth::Matrix<float> getNextBatchImages(int bacthSize)
+  BitMth::linalg::Matrix<float> getNextBatchImages(int bacthSize)
   {
-    BitMth::Matrix<float> X(784, bacthSize);
+    BitMth::linalg::Matrix<float> X(784, bacthSize);
 
     for (size_t i = 0; i < bacthSize; i++)
     {
@@ -88,9 +88,9 @@ public:
     return X;
   }
 
-  BitMth::Matrix<float> getNextBatchLabes(int bacthSize)
+  BitMth::linalg::Matrix<float> getNextBatchLabes(int bacthSize)
   {
-    BitMth::Matrix<float> Y(10, bacthSize);
+    BitMth::linalg::Matrix<float> Y(10, bacthSize);
     for (size_t i = 0; i < bacthSize; i++)
     {
       unsigned char label;

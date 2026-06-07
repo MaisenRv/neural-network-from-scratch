@@ -3,17 +3,17 @@
 #include <memory>
 #include <vector>
 #include <nn/Layer/ILayer.hpp>
-#include <BitMth/math/Loss.hpp>
+#include <BitMth/ia/Loss.hpp>
 
 namespace NN {
     template <typename T>
     class NeuralNetwork {
     private:
         std::vector<std::unique_ptr<ILayer<T>>> layers;
-        BitMth::Math::LossFunct lossFunctType;
+        BitMth::ia::LossFunct lossFunctType;
 
     public:
-        NeuralNetwork(BitMth::Math::LossFunct lossFunctType): lossFunctType(lossFunctType){}
+        NeuralNetwork(BitMth::ia::LossFunct lossFunctType): lossFunctType(lossFunctType){}
 
         void addLayer(std::unique_ptr<ILayer<T>> layer){
             if(!this->layers.empty()){
@@ -28,25 +28,25 @@ namespace NN {
             this->layers.push_back(std::move(layer));
         }
 
-        BitMth::Matrix<T> forwardPass(const BitMth::Matrix<T> &inputs){
-            BitMth::Matrix<T> result = inputs;
+        BitMth::linalg::Matrix<T> forwardPass(const BitMth::linalg::Matrix<T> &inputs){
+            BitMth::linalg::Matrix<T> result = inputs;
             for (size_t i = 0; i < this->layers.size(); i++){
                 result = this->layers[i]->forward(result);
             }
             return result;
         }
 
-        void backPropagation(const BitMth::Matrix<T> &real){
+        void backPropagation(const BitMth::linalg::Matrix<T> &real){
             const auto& predicted = this->layers.back()->getActivationValues();
-            BitMth::Matrix<T> errorGradient;
+            BitMth::linalg::Matrix<T> errorGradient;
 
             switch (this->lossFunctType) {
-                case BitMth::Math::LossFunct::MSE :
-                    errorGradient = BitMth::Math::mseDerivative(predicted, real);
+                case BitMth::ia::LossFunct::MSE :
+                    errorGradient = BitMth::ia::mseDerivative(predicted, real);
                     break;
                     
-                case BitMth::Math::LossFunct::BINARY_CROSS_ENTROPY :
-                    errorGradient = BitMth::Math::bceDerivative(predicted, real);
+                case BitMth::ia::LossFunct::BINARY_CROSS_ENTROPY :
+                    errorGradient = BitMth::ia::bceDerivative(predicted, real);
                     break;
             }
             for (size_t i = this->layers.size(); i > 0; i--){
@@ -60,7 +60,7 @@ namespace NN {
             }
         }
 
-        void train(T learningRate, const BitMth::Matrix<T> &inputs, const BitMth::Matrix<T> &realValues){
+        void train(T learningRate, const BitMth::linalg::Matrix<T> &inputs, const BitMth::linalg::Matrix<T> &realValues){
             this->forwardPass(inputs);
             this->backPropagation(realValues);
             this->gradientDescent(learningRate);

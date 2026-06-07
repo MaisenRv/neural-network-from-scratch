@@ -1,34 +1,34 @@
 #pragma once
 
-#include <BitMth/core/Matrix.hpp>
-#include <BitMth/math/Activations.hpp>
+#include <BitMth/linalg/Matrix.hpp>
+#include <BitMth/ia/Activations.hpp>
 
 namespace NN {
     template<typename T> 
     class ILayer {
     protected:
-        using ActivationPtr = BitMth::Matrix<T>(*)(const BitMth::Matrix<T>&);
-        using DerivativePtr = BitMth::Matrix<T>(*)(const BitMth::Matrix<T>&, const BitMth::Matrix<T>&);
+        using ActivationPtr = BitMth::linalg::Matrix<T>(*)(const BitMth::linalg::Matrix<T>&);
+        using DerivativePtr = BitMth::linalg::Matrix<T>(*)(const BitMth::linalg::Matrix<T>&, const BitMth::linalg::Matrix<T>&);
         
-        BitMth::Matrix<T> weightedSum;        
-        BitMth::Matrix<T> activationValues;
-        BitMth::Matrix<T> delta;
-        BitMth::Matrix<T> inputCache;
+        BitMth::linalg::Matrix<T> weightedSum;        
+        BitMth::linalg::Matrix<T> activationValues;
+        BitMth::linalg::Matrix<T> delta;
+        BitMth::linalg::Matrix<T> inputCache;
 
-        BitMth::Math::ActivationFunct activationFuntType;
+        BitMth::ia::ActivationFunct activationFuntType;
         ActivationPtr activationFunt;
         DerivativePtr derivateActivationFunt;
     public:
         ILayer() = default;
         virtual ~ILayer() = default;
         
-        virtual BitMth::Matrix<T> forward(const BitMth::Matrix<T>& input) = 0;
-        virtual BitMth::Matrix<T> backward(const BitMth::Matrix<T>& errorGradient) = 0;
+        virtual BitMth::linalg::Matrix<T> forward(const BitMth::linalg::Matrix<T>& input) = 0;
+        virtual BitMth::linalg::Matrix<T> backward(const BitMth::linalg::Matrix<T>& errorGradient) = 0;
         virtual void updateParameters(T learningRate) = 0;
 
         virtual size_t getNumberNeurons() const = 0;
         virtual size_t getNumberInputs() const = 0;
 
-        const BitMth::Matrix<T>& getActivationValues() const { return this->activationValues; };
+        const BitMth::linalg::Matrix<T>& getActivationValues() const { return this->activationValues; };
     };    
 }

@@ -7,46 +7,46 @@ namespace NN {
     template <typename T>
     class DenseLayer : public ILayer<T>{
     private:
-        BitMth::Matrix<T> weights;
-        BitMth::Matrix<T> bias;
+        BitMth::linalg::Matrix<T> weights;
+        BitMth::linalg::Matrix<T> bias;
 
-        BitMth::Matrix<T> dWeights;
-        BitMth::Matrix<T> dBias;
+        BitMth::linalg::Matrix<T> dWeights;
+        BitMth::linalg::Matrix<T> dBias;
 
         void selectFunctionType(size_t inputs, size_t neurons){
             switch (this->activationFuntType) {
-                case BitMth::Math::ActivationFunct::RELU :
-                    this->activationFunt = &BitMth::Math::relu;
-                    this->derivateActivationFunt = &BitMth::Math::reluDerivative;
+                case BitMth::ia::ActivationFunct::RELU :
+                    this->activationFunt = &BitMth::ia::relu;
+                    this->derivateActivationFunt = &BitMth::ia::reluDerivative;
                     BitMth::Random::heNormal(this->weights, inputs);
                     BitMth::Random::uniform(this->bias, T(0.0001), T(0.01));
                     break;
-                case BitMth::Math::ActivationFunct::SIGMOID :
-                    this->activationFunt = &BitMth::Math::sigmoid;
-                    this->derivateActivationFunt = &BitMth::Math::sigmoidDerivative;
+                case BitMth::ia::ActivationFunct::SIGMOID :
+                    this->activationFunt = &BitMth::ia::sigmoid;
+                    this->derivateActivationFunt = &BitMth::ia::sigmoidDerivative;
                     BitMth::Random::xavierUniform(this->weights, inputs, neurons);
                     break;
-                case BitMth::Math::ActivationFunct::TANH :
-                    this->activationFunt = &BitMth::Math::Tanh;
-                    this->derivateActivationFunt = &BitMth::Math::TanhDerivative;
+                case BitMth::ia::ActivationFunct::TANH :
+                    this->activationFunt = &BitMth::ia::Tanh;
+                    this->derivateActivationFunt = &BitMth::ia::TanhDerivative;
                     BitMth::Random::xavierUniform(this->weights, inputs, neurons);
                     break;
-                case BitMth::Math::ActivationFunct::SOFTMAX :
-                    this->activationFunt = &BitMth::Math::softmax;
+                case BitMth::ia::ActivationFunct::SOFTMAX :
+                    this->activationFunt = &BitMth::ia::softmax;
                     BitMth::Random::xavierUniform(this->weights, inputs, neurons);
                     break;
             }
         }
 
     public:
-        DenseLayer(size_t inputs, size_t neurons, BitMth::Math::ActivationFunct  actFunctType): weights(inputs,neurons), bias(1, neurons){
+        DenseLayer(size_t inputs, size_t neurons, BitMth::ia::ActivationFunct  actFunctType): weights(inputs,neurons), bias(1, neurons){
             this->activationFuntType = actFunctType;
             this->selectFunctionType(inputs, neurons);
         };
 
         ~DenseLayer() = default;
 
-        BitMth::Matrix<T> forward(const BitMth::Matrix<T>& input) override {
+        BitMth::linalg::Matrix<T> forward(const BitMth::linalg::Matrix<T>& input) override {
             this->inputCache = input;
             this->weightedSum = (input * this->weights).addRowVector(this->bias);
 
@@ -54,8 +54,8 @@ namespace NN {
             return this->activationValues;
         }
 
-        BitMth::Matrix<T> backward(const BitMth::Matrix<T>& errorGradient) override{
-            if(this->activationFuntType == BitMth::Math::ActivationFunct::SOFTMAX){
+        BitMth::linalg::Matrix<T> backward(const BitMth::linalg::Matrix<T>& errorGradient) override{
+            if(this->activationFuntType == BitMth::ia::ActivationFunct::SOFTMAX){
                 this->delta = errorGradient;
             }else{
                 this->delta = this->derivateActivationFunt(
