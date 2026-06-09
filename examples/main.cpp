@@ -8,9 +8,9 @@
 #include <nn/Layer/DenseLayer.hpp>
 int main()
 {
-	using BitMth::Math::ActivationFunct;
-    using BitMth::Math::LossFunct;
-    using BitMth::Matrix;
+	using BitMth::ia::ActivationFunct;
+    using BitMth::ia::LossFunct;
+    using BitMth::linalg::Matrix;
     
     // 1. CARGA DEL DATASET DE ENTRENAMIENTO (60,000 imágenes)
     ReadDataSet data("datasets/train-images-idx3-ubyte", true);
@@ -74,7 +74,7 @@ int main()
 
             Matrix<float> prediction = nn.forwardPass(XBatch);
             
-            epochLoss += BitMth::Math::mse(prediction, YBatch);
+            epochLoss += BitMth::ia::mse(prediction, YBatch);
             numBatches++;
         }
 
