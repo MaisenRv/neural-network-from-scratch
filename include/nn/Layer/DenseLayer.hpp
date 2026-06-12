@@ -18,22 +18,22 @@ namespace NN {
                 case BitMth::ia::ActivationFunct::RELU :
                     this->activationFunt = &BitMth::ia::relu;
                     this->derivateActivationFunt = &BitMth::ia::reluDerivative;
-                    BitMth::Random::heNormal(this->weights, inputs);
-                    BitMth::Random::uniform(this->bias, T(0.0001), T(0.01));
+                    BitMth::random::heNormal(this->weights, inputs);
+                    BitMth::random::uniform(this->bias, T(0.0001), T(0.01));
                     break;
                 case BitMth::ia::ActivationFunct::SIGMOID :
                     this->activationFunt = &BitMth::ia::sigmoid;
                     this->derivateActivationFunt = &BitMth::ia::sigmoidDerivative;
-                    BitMth::Random::xavierUniform(this->weights, inputs, neurons);
+                    BitMth::random::xavierUniform(this->weights, inputs, neurons);
                     break;
                 case BitMth::ia::ActivationFunct::TANH :
                     this->activationFunt = &BitMth::ia::Tanh;
                     this->derivateActivationFunt = &BitMth::ia::TanhDerivative;
-                    BitMth::Random::xavierUniform(this->weights, inputs, neurons);
+                    BitMth::random::xavierUniform(this->weights, inputs, neurons);
                     break;
                 case BitMth::ia::ActivationFunct::SOFTMAX :
                     this->activationFunt = &BitMth::ia::softmax;
-                    BitMth::Random::xavierUniform(this->weights, inputs, neurons);
+                    BitMth::random::xavierUniform(this->weights, inputs, neurons);
                     break;
             }
         }
