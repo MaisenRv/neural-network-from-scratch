@@ -8,8 +8,9 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(third_party/BitMth)
 

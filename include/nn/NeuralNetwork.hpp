@@ -45,9 +45,9 @@ namespace NN {
                     errorGradient = BitMth::ia::mseDerivative(predicted, real);
                     break;
                     
-                case BitMth::ia::LossFunct::BINARY_CROSS_ENTROPY :
-                    errorGradient = BitMth::ia::bceDerivative(predicted, real);
-                    break;
+                // case BitMth::ia::LossFunct::BINARY_CROSS_ENTROPY :
+                //     errorGradient = BitMth::ia::bceDerivative(predicted, real);
+                //     break;
             }
             for (size_t i = this->layers.size(); i > 0; i--){
                 errorGradient = this->layers[i - 1]->backward(errorGradient);
@@ -61,7 +61,7 @@ namespace NN {
         }
 
         void train(T learningRate, const BitMth::linalg::Matrix<T> &inputs, const BitMth::linalg::Matrix<T> &realValues){
-            this->forwardPass(inputs);
+            (void)this->forwardPass(inputs);
             this->backPropagation(realValues);
             this->gradientDescent(learningRate);
         }

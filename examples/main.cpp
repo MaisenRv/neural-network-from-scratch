@@ -1,14 +1,15 @@
 // #include "nn/NeuralNetwork.hpp"
 // #include <vector>
 // #include <iostream>
+#include "BitMth/ia/types/ActivationTypes.hpp"
 #include "utils/readDataSet.hpp"
 // #include "BitMth/math/Activations.hpp"
 
 #include <nn/NeuralNetwork.hpp>
 #include <nn/Layer/DenseLayer.hpp>
+#include <stdexcept>
 int main()
 {
-	using BitMth::ia::ActivationFunct;
     using BitMth::ia::LossFunct;
     using BitMth::linalg::Matrix;
     
@@ -19,9 +20,9 @@ int main()
 
     // 2. CONFIGURACIÓN DE LA RED NEURONAL
     NN::NeuralNetwork<float> nn(LossFunct::MSE);
-    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(dataLength, 128, ActivationFunct::RELU));
-    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(128, 64, ActivationFunct::RELU));
-    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(64, 10, ActivationFunct::SIGMOID));
+    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(dataLength, 128, BitMth::ia::types::ActivationFunctType::RELU));
+    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(128, 64, BitMth::ia::types::ActivationFunctType::RELU));
+    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(64, 10, BitMth::ia::types::ActivationFunctType::SIGMOID));
 
     std::cout << "Cargando dataset de entrenamiento en matrices de BitMth..." << std::endl;
 
