@@ -1,16 +1,12 @@
-// #include "nn/NeuralNetwork.hpp"
-// #include <vector>
-// #include <iostream>
+#include "BitMth/ia/Loss.hpp"
 #include "BitMth/ia/types/ActivationTypes.hpp"
+#include "BitMth/ia/types/LossTypes.hpp"
 #include "utils/readDataSet.hpp"
-// #include "BitMth/math/Activations.hpp"
 
 #include <nn/NeuralNetwork.hpp>
 #include <nn/Layer/DenseLayer.hpp>
-#include <stdexcept>
 int main()
 {
-    using BitMth::ia::LossFunct;
     using BitMth::linalg::Matrix;
     
     // 1. CARGA DEL DATASET DE ENTRENAMIENTO (60,000 imágenes)
@@ -19,7 +15,7 @@ int main()
     int dataLength = data.width * data.height; // 784
 
     // 2. CONFIGURACIÓN DE LA RED NEURONAL
-    NN::NeuralNetwork<float> nn(LossFunct::MSE);
+    NN::NeuralNetwork<float> nn(BitMth::ia::types::LossFunctType::MSE);
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(dataLength, 128, BitMth::ia::types::ActivationFunctType::RELU));
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(128, 64, BitMth::ia::types::ActivationFunctType::RELU));
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(64, 10, BitMth::ia::types::ActivationFunctType::SIGMOID));
@@ -48,7 +44,7 @@ int main()
     // 3. BUCLE DE ENTRENAMIENTO EN MINI-BATCHES (Estabilidad Numérica)
     int epochs = 5;
     int batchSize = 64; 
-    float learningRate = 0.01f;
+    float learningRate = 0.9f;
 
     std::cout << "Iniciando entrenamiento..." << std::endl;
 
@@ -75,7 +71,7 @@ int main()
 
             Matrix<float> prediction = nn.forwardPass(XBatch);
             
-            epochLoss += BitMth::ia::mse(prediction, YBatch);
+            epochLoss += BitMth::ia::Losses<float>::mse(prediction, YBatch);
             numBatches++;
         }
 
