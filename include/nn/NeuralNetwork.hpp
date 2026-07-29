@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BitMth/ia/types/LossTypes.hpp"
+#include "BitMth/ia/types/OptimizerTypes.hpp"
 #include <memory>
 #include <vector>
 #include <nn/Layer/ILayer.hpp>
@@ -14,9 +14,11 @@ namespace NN {
 
         BitMth::ia::types::LossContent<T> lossFunctions;
 
+        BitMth::ia::types::OptimizerType optType; 
+
     public:
-        NeuralNetwork(BitMth::ia::types::LossFunctType lossFunctType):
-            lossFunctions(BitMth::ia::getLossFunction<T>(lossFunctType)){}
+        NeuralNetwork(BitMth::ia::types::LossFunctType lossFunctType, BitMth::ia::types::OptimizerType optType):
+            lossFunctions(BitMth::ia::getLossFunction<T>(lossFunctType)), optType(optType){}
 
         void addLayer(std::unique_ptr<ILayer<T>> layer){
             if(!this->layers.empty()){
@@ -49,7 +51,7 @@ namespace NN {
 
         void gradientDescent(T learningRate){
             for (size_t i = 0; i < this->layers.size(); i++){
-                this->layers[i]->updateParameters(learningRate);   
+                this->layers[i]->updateParameters(learningRate,optType);   
             }
         }
 

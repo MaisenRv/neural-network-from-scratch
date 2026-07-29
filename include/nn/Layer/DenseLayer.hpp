@@ -1,8 +1,8 @@
 #pragma once
 
-#include "BitMth/ia/Activations.hpp"
 #include <BitMth/random/MatrixRandom.hpp>
 #include <nn/Layer/ILayer.hpp>
+#include <BitMth/utils/Constants.hpp>
 
 namespace NN {
     template <typename T>
@@ -36,7 +36,7 @@ namespace NN {
         }
 
     public:
-        DenseLayer(size_t inputs, size_t neurons, const BitMth::ia::types::ActivationFunctType actFunctType): weights(inputs,neurons), bias(1, neurons){
+        DenseLayer(size_t inputs, size_t neurons, const ActFuncType actFunctType): weights(inputs,neurons), bias(1, neurons){
             this->activationFuntType = actFunctType;
             this->activationFuncts = BitMth::ia::getActivationFunction<T>(this->activationFuntType);
             this->selectRandomType(inputs, neurons);
@@ -68,9 +68,10 @@ namespace NN {
             return this->delta * Matrix::t(this->weights);
         }
 
-        void updateParameters(T learningRate) override {
-            this->weights -= (learningRate * this->dWeights);
-            this->bias    -= (learningRate * this->dBias);
+        void updateParameters(T learningRate, BitMth::ia::types::OptimizerType type) override {
+            auto & optimize = BitMth::ia::getOptimizer<T>(type);
+            optimize.opt(this->weights, this->dWeights, learningRate, this->stateOptWeight, BitMth::utils::WEIGHT_DECAY<T>);
+            optimize.opt(this->bias, this->dBias, learningRate, this->stateOptBias, BitMth::utils::WEIGHT_DECAY<T>);
         }
 
         size_t getNumberNeurons() const override { return this->weights.getCols(); }

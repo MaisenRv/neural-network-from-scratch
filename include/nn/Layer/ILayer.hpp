@@ -3,6 +3,8 @@
 #include <BitMth/linalg/Matrix.hpp>
 #include <BitMth/ia/Activations.hpp>
 #include <BitMth/ia/types/ActivationTypes.hpp>
+#include <BitMth/ia/Optimizer.hpp>
+#include <BitMth/ia/types/OptimizerTypes.hpp>
 
 namespace NN {
     template<typename T> 
@@ -17,13 +19,17 @@ namespace NN {
 
         BitMth::ia::types::ActivationContent<T> activationFuncts;
         BitMth::ia::types::ActivationFunctType activationFuntType;
+
+        BitMth::ia::types::OptimizerState<T> stateOptBias;
+        BitMth::ia::types::OptimizerState<T> stateOptWeight;
+        
     public:
         ILayer() = default;
         virtual ~ILayer() = default;
         
         virtual Matrix forward(const Matrix& input) = 0;
         virtual Matrix backward(const Matrix& errorGradient) = 0;
-        virtual void updateParameters(T learningRate) = 0;
+        virtual void updateParameters(T learningRate, BitMth::ia::types::OptimizerType type) = 0;
 
         virtual size_t getNumberNeurons() const = 0;
         virtual size_t getNumberInputs() const = 0;

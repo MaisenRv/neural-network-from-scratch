@@ -1,6 +1,7 @@
 #include "BitMth/ia/Loss.hpp"
 #include "BitMth/ia/types/ActivationTypes.hpp"
 #include "BitMth/ia/types/LossTypes.hpp"
+#include "BitMth/ia/types/OptimizerTypes.hpp"
 #include "utils/readDataSet.hpp"
 
 #include <nn/NeuralNetwork.hpp>
@@ -15,7 +16,7 @@ int main()
     int dataLength = data.width * data.height; // 784
 
     // 2. CONFIGURACIÓN DE LA RED NEURONAL
-    NN::NeuralNetwork<float> nn(BitMth::ia::types::LossFunctType::MSE);
+    NN::NeuralNetwork<float> nn(BitMth::ia::types::LossFunctType::MSE,BitMth::ia::types::OptimizerType::ADAM);
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(dataLength, 128, BitMth::ia::types::ActivationFunctType::RELU));
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(128, 64, BitMth::ia::types::ActivationFunctType::RELU));
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(64, 10, BitMth::ia::types::ActivationFunctType::SIGMOID));
@@ -44,7 +45,7 @@ int main()
     // 3. BUCLE DE ENTRENAMIENTO EN MINI-BATCHES (Estabilidad Numérica)
     int epochs = 5;
     int batchSize = 64; 
-    float learningRate = 0.9f;
+    float learningRate = 0.001f;
 
     std::cout << "Iniciando entrenamiento..." << std::endl;
 
