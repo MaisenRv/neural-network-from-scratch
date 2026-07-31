@@ -1,46 +1,69 @@
-#include "BitMth/ia/Loss.hpp"
-#include "BitMth/ia/types/ActivationTypes.hpp"
-#include "BitMth/ia/types/LossTypes.hpp"
-#include "BitMth/ia/types/OptimizerTypes.hpp"
-#include "utils/readDataSet.hpp"
+#include "BitMth/core/Arena.hpp"
+#include <BitMth/io/DataNpyIO.hpp>
+#include <BitMth/ia/IA.hpp>
+#include <BitMth/linalg/Matrix.hpp>
 
+#include <cstdint>
 #include <nn/NeuralNetwork.hpp>
 #include <nn/Layer/DenseLayer.hpp>
 int main()
 {
     using BitMth::linalg::Matrix;
-    
+    BitMth::io::DataNpyIO<uint8_t> mnistReader;
+    std::mt19937 gen;
+    Matrix<float> imagesTrain;
+    Matrix<float> labelsTrain;
+    Matrix<float> imagesTest;
+    Matrix<float> labelsTest;
+    BitMth::core::Arena arena(BitMth::core::Arena::MB(500));
     // 1. CARGA DEL DATASET DE ENTRENAMIENTO (60,000 imágenes)
-    ReadDataSet data("datasets/train-images-idx3-ubyte", true);
-    ReadDataSet dataLabels("datasets/train-labels-idx1-ubyte", false);
-    int dataLength = data.width * data.height; // 784
+    std::cout << "Cargando dataset de entrenamiento en matrices de BitMth..." << std::endl;
+    {
+        Matrix<uint8_t> imgTrainRead = mnistReader.read("datasets/mnist_X_train.npy");
+        Matrix<uint8_t> labelsTrainRead = mnistReader.read("datasets/mnist_y_train.npy");
+        Matrix<uint8_t> imgTestRead = mnistReader.read("datasets/mnist_X_test.npy");
+        Matrix<uint8_t> labelsTestRead = mnistReader.read("datasets/mnist_y_test.npy");
+
+        imagesTrain = Matrix<float>(imgTrainRead.getRows(),imgTrainRead.getCols(),&arena,true);
+        labelsTrain = Matrix<float>(labelsTrainRead.getRows(),10,&arena,true);
+        imagesTest = Matrix<float>(imgTestRead .getRows(),imgTestRead .getCols(),&arena,true);
+        labelsTest = Matrix<float>(labelsTestRead .getRows(),10,&arena,true);
+
+        constexpr float inv255 = 1.0f / 255.0f;
+
+        const uint8_t* srcTrain = imgTrainRead.getValues();
+        float* destTrain = imagesTrain.getValues();
+        size_t totalTrainPixels = imagesTrain.size();
+        for (size_t i = 0; i < totalTrainPixels; ++i) {
+            destTrain[i] = static_cast<float>(srcTrain[i]) * inv255;
+        }
+
+        const uint8_t* srcTest = imgTestRead.getValues();
+        float* destTest = imagesTest.getValues();
+        size_t totalTestPixels = imagesTest.size();
+        for (size_t i = 0; i < totalTestPixels; ++i) {
+            destTest[i] = static_cast<float>(srcTest[i]) * inv255;
+        }
+
+        const uint8_t* rawTrainLabels = labelsTrainRead.getValues();
+        for (size_t i = 0; i < labelsTrain.getRows(); ++i) {
+            uint8_t labelClass = rawTrainLabels[i];
+            labelsTrain(i, labelClass) = 1.0f;
+        }
+
+        const uint8_t* rawTestLabels = labelsTestRead.getValues();
+        for (size_t i = 0; i < labelsTest.getRows(); ++i) {
+            uint8_t labelClass = rawTestLabels[i];
+            labelsTest(i, labelClass) = 1.0f;
+        }
+
+    }
 
     // 2. CONFIGURACIÓN DE LA RED NEURONAL
     NN::NeuralNetwork<float> nn(BitMth::ia::types::LossFunctType::MSE,BitMth::ia::types::OptimizerType::ADAM);
-    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(dataLength, 128, BitMth::ia::types::ActivationFunctType::RELU));
+    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(imagesTrain.getCols(), 128, BitMth::ia::types::ActivationFunctType::RELU));
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(128, 64, BitMth::ia::types::ActivationFunctType::RELU));
     nn.addLayer(std::make_unique<NN::DenseLayer<float>>(64, 10, BitMth::ia::types::ActivationFunctType::SIGMOID));
-
-    std::cout << "Cargando dataset de entrenamiento en matrices de BitMth..." << std::endl;
-
-    // Matriz de características: (60000, 784)
-    Matrix<float> X(data.samples, dataLength);
-    for (size_t i = 0; i < data.samples; i++) {
-        unsigned char* image = data.readNextImage();
-        for (size_t j = 0; j < dataLength; j++) {
-            X(i, j) = image[j] / 255.0f; // Normalización elemental
-        }    
-    }
-
-    // Matriz de etiquetas One-Hot: (60000, 10)
-    Matrix<float> Y(dataLabels.samples, 10);
-    for (size_t i = 0; i < dataLabels.samples; i++) {
-        unsigned char label;
-        dataLabels.readNextLabel(label);
-        for (size_t j = 0; j < 10; j++) {
-            Y(i, j) = (label == j) ? 1.0f : 0.0f;
-        }    
-    }
 
     // 3. BUCLE DE ENTRENAMIENTO EN MINI-BATCHES (Estabilidad Numérica)
     int epochs = 5;
@@ -49,55 +72,38 @@ int main()
 
     std::cout << "Iniciando entrenamiento..." << std::endl;
 
+    BitMth::ia::DataLoader<float> trainData(imagesTrain,labelsTrain,batchSize);
+    BitMth::ia::DataLoader<float> testData(imagesTest,labelsTest,1);
+
     for (int epoch = 0; epoch < epochs; epoch++) {
         float epochLoss = 0.0f;
         int numBatches = 0;
 
-        for (size_t start = 0; start < data.samples; start += batchSize) {
-            size_t currentBatchSize = std::min(static_cast<size_t>(batchSize), data.samples - start);
+        while (trainData.hasNext()) {
+            std::pair<Matrix<float>,Matrix<float>> batch = trainData.getNextBatch();
 
-            Matrix<float> XBatch(currentBatchSize, dataLength);
-            Matrix<float> YBatch(currentBatchSize, 10);
+            nn.train(learningRate, batch.first, batch.second);
 
-            for (size_t i = 0; i < currentBatchSize; i++) {
-                for (size_t j = 0; j < dataLength; j++) {
-                    XBatch(i, j) = X(start + i, j);
-                }
-                for (size_t j = 0; j < 10; j++) {
-                    YBatch(i, j) = Y(start + i, j);
-                }
-            }
-
-            nn.train(learningRate, XBatch, YBatch);
-
-            Matrix<float> prediction = nn.forwardPass(XBatch);
+            Matrix<float> prediction = nn.forwardPass(batch.first);
             
-            epochLoss += BitMth::ia::Losses<float>::mse(prediction, YBatch);
+            epochLoss += BitMth::ia::Losses<float>::mse(prediction, batch.second);
             numBatches++;
         }
 
         std::cout << "Epoch " << (epoch + 1) << "/" << epochs 
                   << " | Avg Loss: " << (epochLoss / numBatches) << std::endl;
+        trainData.reset(gen);
     }
 
     // 4. VALIDACIÓN CON EL DATASET DE TEST (10,000 imágenes para evaluar el Accuracy real)
     std::cout << "\nCargando dataset de validación (Test)..." << std::endl;
-    ReadDataSet dataTest("datasets/t10k-images-idx3-ubyte", true);
-    ReadDataSet dataLabelsTest("datasets/t10k-labels-idx1-ubyte", false);
 
     int corrects = 0;
 
-    for (size_t i = 0; i < dataTest.samples; i++) {
-        Matrix<float> xSample(1, dataLength);
-        unsigned char* image = dataTest.readNextImage();
-        for (size_t j = 0; j < dataLength; j++) {
-            xSample(0, j) = image[j] / 255.0f;
-        }
+    while (testData.hasNext()) {
 
-        unsigned char actualLabel;
-        dataLabelsTest.readNextLabel(actualLabel);
-
-        Matrix<float> result = nn.forwardPass(xSample);
+        std::pair<Matrix<float>,Matrix<float>> batch = testData.getNextBatch();
+        Matrix<float> result = nn.forwardPass(batch.first);
 
         int highestIndex = 0;
         float maxVal = result(0, 0);
@@ -107,6 +113,14 @@ int main()
                 highestIndex = j;
             }
         }
+        int actualLabel = 0;
+        float maxLabelVal = batch.second(0, 0);
+        for (int j = 1; j < 10; j++) {
+            if (batch.second(0, j) > maxLabelVal) {
+                maxLabelVal = batch.second(0, j);
+                actualLabel = j;
+            }
+        }
 
         if (highestIndex == actualLabel) {
             corrects++;
@@ -114,8 +128,8 @@ int main()
     }
 
     std::cout << "\n--- RESULTADO DE LA EVALUACIÓN ---" << std::endl;
-    std::cout << "Muestras correctas: " << corrects << " / " << dataTest.samples << std::endl;
-    std::cout << "Precisión Final (Accuracy): " << (static_cast<float>(corrects) / dataTest.samples) * 100.0f << "%" << std::endl;
+    std::cout << "Muestras correctas: " << corrects << " / " << imagesTest.getRows() << std::endl;
+    std::cout << "Precisión Final (Accuracy): " << (static_cast<float>(corrects) / imagesTest.getRows()) * 100.0f << "%" << std::endl;
 
     return 0;
 }
