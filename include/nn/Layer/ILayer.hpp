@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BitMth/core/Arena.hpp"
 #include <BitMth/linalg/Matrix.hpp>
 #include <BitMth/ia/Activations.hpp>
 #include <BitMth/ia/types/ActivationTypes.hpp>
@@ -27,9 +28,9 @@ namespace NN {
         ILayer() = default;
         virtual ~ILayer() = default;
         
-        virtual Matrix forward(const Matrix& input) = 0;
-        virtual Matrix backward(const Matrix& errorGradient) = 0;
-        virtual void updateParameters(T learningRate, BitMth::ia::types::OptimizerType type) = 0;
+        virtual Matrix forward(const Matrix& input, BitMth::core::Arena * arena = nullptr) = 0;
+        virtual Matrix backward(const Matrix& errorGradient, BitMth::core::Arena * arena = nullptr) = 0;
+        virtual void updateParameters(T learningRate, BitMth::ia::types::OptimizerType type, BitMth::core::Arena * arena = nullptr) = 0;
 
         virtual size_t getNumberNeurons() const = 0;
         virtual size_t getNumberInputs() const = 0;

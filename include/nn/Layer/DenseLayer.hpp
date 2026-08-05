@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BitMth/core/Arena.hpp"
+#include "BitMth/linalg/Matrix.hpp"
 #include <BitMth/random/MatrixRandom.hpp>
 #include <nn/Layer/ILayer.hpp>
 #include <BitMth/utils/Constants.hpp>
@@ -36,7 +38,7 @@ namespace NN {
         }
 
     public:
-        DenseLayer(size_t inputs, size_t neurons, const ActFuncType actFunctType): weights(inputs,neurons), bias(1, neurons){
+        DenseLayer(size_t inputs, size_t neurons, const ActFuncType actFunctType, BitMth::core::Arena *staticArena): weights(inputs,neurons,staticArena), bias(1, neurons,staticArena){
             this->activationFuntType = actFunctType;
             this->activationFuncts = BitMth::ia::getActivationFunction<T>(this->activationFuntType);
             this->selectRandomType(inputs, neurons);
@@ -44,32 +46,34 @@ namespace NN {
 
         ~DenseLayer() = default;
 
-        Matrix forward(const Matrix& input) override {
+        Matrix forward(const Matrix& input, BitMth::core::Arena * arena = nullptr) override {
             this->inputCache = input;
-            this->weightedSum = (input * this->weights).addRowVector(this->bias);
+            // this->weightedSum = (input * this->weights).addRowVector(this->bias);
+            this->weightedSum = Matrix::mul(input, this->weights, arena).addRowVector(this->bias,arena);
 
-            this->activationValues = this->activationFuncts.function(this->weightedSum, nullptr);
+            this->activationValues = this->activationFuncts.function(this->weightedSum, arena);
             return this->activationValues;
         }
 
-        Matrix backward(const Matrix& errorGradient) override{
+        Matrix backward(const Matrix& errorGradient, BitMth::core::Arena * arena = nullptr) override{
             if(this->activationFuncts.devFunction == nullptr){
                 this->delta = errorGradient;
             }else{
                 this->delta = this->activationFuncts.devFunction(
                     this->weightedSum,
                     this->activationValues,
-                    nullptr
+                    arena
                 );
                 this->delta.hadamardInPlace(errorGradient);
             }
-            this->dWeights = Matrix::t(this->inputCache) * this->delta;
-            this->dBias = this->delta.reduceSumRows();
-            return this->delta * Matrix::t(this->weights);
+            // this->dWeights = Matrix::t(this->inputCache, arena) * this->delta;
+            this->dWeights = Matrix::mul(Matrix::t(this->inputCache, arena) , this->delta,arena);
+            this->dBias = this->delta.reduceSumRows(arena);
+            return this->delta * Matrix::t(this->weights,arena);
         }
 
-        void updateParameters(T learningRate, BitMth::ia::types::OptimizerType type) override {
-            auto & optimize = BitMth::ia::getOptimizer<T>(type);
+        void updateParameters(T learningRate, BitMth::ia::types::OptimizerType type, BitMth::core::Arena * arena = nullptr) override {
+            auto& optimize = BitMth::ia::getOptimizer<T>(type);
             optimize.opt(this->weights, this->dWeights, learningRate, this->stateOptWeight, BitMth::utils::WEIGHT_DECAY<T>);
             optimize.opt(this->bias, this->dBias, learningRate, this->stateOptBias, BitMth::utils::WEIGHT_DECAY<T>);
         }
