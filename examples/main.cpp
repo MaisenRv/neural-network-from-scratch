@@ -1,8 +1,13 @@
 #include "BitMth/core/Arena.hpp"
+#include "BitMth/ia/Activations.hpp"
+#include "BitMth/ia/LossFunctions.hpp"
+#include "BitMth/ia/types/ActivationTypes.hpp"
+#include "nn/Layer/types/LayerTypes.hpp"
 #include <BitMth/io/DataNpyIO.hpp>
 #include <BitMth/ia/IA.hpp>
 #include <BitMth/linalg/Matrix.hpp>
 
+#include <cmath>
 #include <cstdint>
 #include <nn/NeuralNetwork.hpp>
 #include <nn/Layer/DenseLayer.hpp>
@@ -15,7 +20,9 @@ int main()
     Matrix<float> labelsTrain;
     Matrix<float> imagesTest;
     Matrix<float> labelsTest;
-    BitMth::core::Arena arena(BitMth::core::Arena::MB(500));
+    BitMth::core::Arena arena(BitMth::core::Arena::MB(250));
+    BitMth::core::Arena scratchArena(BitMth::core::Arena::MB(160));
+
     // 1. CARGA DEL DATASET DE ENTRENAMIENTO (60,000 imágenes)
     std::cout << "Cargando dataset de entrenamiento en matrices de BitMth..." << std::endl;
     {
@@ -61,37 +68,44 @@ int main()
 
     // 2. CONFIGURACIÓN DE LA RED NEURONAL
     NN::NeuralNetwork<float> nn(BitMth::ia::types::LossFunctType::MSE,BitMth::ia::types::OptimizerType::ADAM);
-    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(imagesTrain.getCols(), 128, BitMth::ia::types::ActivationFunctType::RELU));
-    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(128, 64, BitMth::ia::types::ActivationFunctType::RELU));
-    nn.addLayer(std::make_unique<NN::DenseLayer<float>>(64, 10, BitMth::ia::types::ActivationFunctType::SIGMOID));
-
+    nn.setLayers({
+        {imagesTrain.getCols(), 128, NN::layer::types::LayerT::DENSE, BitMth::ia::types::ActivationFunctType::RELU},
+        {128, 64, NN::layer::types::LayerT::DENSE, BitMth::ia::types::ActivationFunctType::RELU},
+        {64, 10, NN::layer::types::LayerT::DENSE, BitMth::ia::types::ActivationFunctType::SIGMOID}
+    });
+                        
     // 3. BUCLE DE ENTRENAMIENTO EN MINI-BATCHES (Estabilidad Numérica)
     int epochs = 5;
     int batchSize = 64; 
     float learningRate = 0.001f;
 
+    int totalBatches = std::ceil(float(imagesTrain.getRows()) / batchSize);
     std::cout << "Iniciando entrenamiento..." << std::endl;
 
     BitMth::ia::DataLoader<float> trainData(imagesTrain,labelsTrain,batchSize);
     BitMth::ia::DataLoader<float> testData(imagesTest,labelsTest,1);
 
     for (int epoch = 0; epoch < epochs; epoch++) {
-        float epochLoss = 0.0f;
+        BitMth::linalg::Matrix<float> epochLoss(1,1) ;
         int numBatches = 0;
 
         while (trainData.hasNext()) {
             std::pair<Matrix<float>,Matrix<float>> batch = trainData.getNextBatch();
 
-            nn.train(learningRate, batch.first, batch.second);
+            nn.train(learningRate, batch.first, batch.second, &scratchArena);
 
             Matrix<float> prediction = nn.forwardPass(batch.first);
             
-            epochLoss += BitMth::ia::Losses<float>::mse(prediction, batch.second);
+            epochLoss += BitMth::ia::LossFunctions<float>::mse(prediction, batch.second);
             numBatches++;
+            printf("Epoch: %d, Batch: %d/%d, currentLoss: %f \r", epoch, totalBatches,numBatches, (epochLoss(0,0) / numBatches));
+            std::fflush(stdout); 
+            scratchArena.reset();
         }
+        std::cout << std::endl;
 
         std::cout << "Epoch " << (epoch + 1) << "/" << epochs 
-                  << " | Avg Loss: " << (epochLoss / numBatches) << std::endl;
+                  << " | Avg Loss: " << (epochLoss / numBatches) << "\r" << std::endl;
         trainData.reset(gen);
     }
 
