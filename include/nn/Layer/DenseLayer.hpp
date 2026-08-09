@@ -60,11 +60,11 @@ namespace NN {
                 this->delta = errorGradient;
             }else{
                 this->delta = this->activationFuncts.devFunction(
-                    this->weightedSum,
                     this->activationValues,
+                    errorGradient,
                     arena
                 );
-                this->delta.hadamardInPlace(errorGradient);
+                // this->delta.hadamardInPlace(errorGradient);
             }
             // this->dWeights = Matrix::t(this->inputCache, arena) * this->delta;
             this->dWeights = Matrix::mul(Matrix::t(this->inputCache, arena) , this->delta,arena);

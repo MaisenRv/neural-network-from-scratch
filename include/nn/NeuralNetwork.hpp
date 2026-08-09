@@ -57,7 +57,7 @@ namespace NN {
 
         void backPropagation(const BitMth::linalg::Matrix<T> &real, BitMth::core::Arena * arena = nullptr){
             const auto& predicted = this->layers.back()->getActivationValues();
-            BitMth::linalg::Matrix<T> errorGradient = this->lossFunctions.lossFunctDev(predicted, real, nullptr);
+            BitMth::linalg::Matrix<T> errorGradient = this->lossFunctions.lossFunctDev(predicted, real, 1, nullptr);
             for (size_t i = this->layers.size(); i > 0; i--){
                 errorGradient = this->layers[i - 1]->backward(errorGradient,arena);
             }

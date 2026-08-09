@@ -1,5 +1,4 @@
 #include "BitMth/core/Arena.hpp"
-#include "BitMth/ia/Activations.hpp"
 #include "BitMth/ia/LossFunctions.hpp"
 #include "BitMth/ia/types/ActivationTypes.hpp"
 #include "nn/Layer/types/LayerTypes.hpp"
